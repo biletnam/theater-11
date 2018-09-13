@@ -34,8 +34,15 @@ describe('# theater', () => {
 
   it('should update category', async () => {
     await theater.updateCategory(15)
-    const cate = theater.db.get(`categories.15`).value()
+    const cate = theater.db.get('categories.15').value()
     assert.equal(cate.id, 15)
     assert(cate.movies.length)
+  })
+
+  it('should update movie', async () => {
+    await theater.updateMovie(7225)
+    const movie = theater.db.get('movies.7225').value()
+    assert(movie.id)
+    assert(movie.m3u8.length)
   })
 })

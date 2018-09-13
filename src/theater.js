@@ -82,4 +82,9 @@ module.exports = class Theater {
     }
     this.db.get('categories').store({ id, movies }).write()
   }
+
+  async updateMovie (id) {
+    const movie = await this.getMovie(id)
+    this.db.get('movies').store(movie).write()
+  }
 }
