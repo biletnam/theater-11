@@ -2,6 +2,11 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const Entities = require('html-entities').AllHtmlEntities
 const queryString = require('query-string')
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
+const mixin = require('./mixin')
+const categories = require('./categories')
 
 const entities = new Entities()
 
@@ -9,6 +14,14 @@ module.exports = class Theater {
   constructor (baseURL, cookie) {
     this.baseURL = baseURL
     this.cookie = cookie
+
+    this.db = low(new FileSync('db.json'))
+    this.db._.mixin(mixin)
+    this.db.defaults({
+      categories: {},
+      movies: {}
+    }).write()
+    categories.map(c => this.db.get('categories').store(c).write())
   }
 
   get (url) {
@@ -54,5 +67,19 @@ module.exports = class Theater {
       return { id, title, url: res.data }
     }).toArray())
     return { id, title, m3u8 }
+  }
+
+  async updateCategory (id) {
+    let res = await this.getCategory(id)
+    const movies = []
+    while (res.next) {
+      for (let i = 0; i < res.movies.length; i++) {
+        const movie = res.movies[i]
+        movies.push(movie.id)
+        this.db.get('movies').store(movie).write()
+      }
+      res = await res.next()
+    }
+    this.db.get('categories').store({ id, movies }).write()
   }
 }

@@ -1,13 +1,17 @@
 require('dotenv').config()
-const { describe, it } = require('mocha')
+const { describe, it, before } = require('mocha')
 const assert = require('assert')
 
 const Theater = require('../src/theater')
 const theater = new Theater(process.env.BASE_URL, process.env.COOKIE)
 
 describe('# theater', () => {
+  before(async () => {
+    theater.db.get('movies').remove().write()
+  })
+
   it('should get category', async () => {
-    const res = await theater.getCategory(4)
+    const res = await theater.getCategory(15)
     assert(res.movies.length)
     assert(res.next !== undefined)
 
@@ -26,5 +30,12 @@ describe('# theater', () => {
     assert(m3u8.id)
     assert(m3u8.title)
     assert(m3u8.url)
+  })
+
+  it('should update category', async () => {
+    await theater.updateCategory(15)
+    const cate = theater.db.get(`categories.15`).value()
+    assert.equal(cate.id, 15)
+    assert(cate.movies.length)
   })
 })
