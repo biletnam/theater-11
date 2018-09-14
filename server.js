@@ -7,15 +7,17 @@ const Theater = require('./src/theater')
 const port = process.env.PORT
 const theater = new Theater(process.env.BASE_URL, process.env.COOKIE)
 
+app.use(express.static('public'))
+
 app.get('/movies/:id', async (req, res) => {
   const id = req.params.id
-  const movie = await theater.getMovie(id)
+  const movie = await theater.crawlMovie(id)
   res.json(movie)
 })
 
 app.get('/categories/:id', async (req, res) => {
   const id = req.params.id
-  const cate = await theater.getCategory(id)
+  const cate = await theater.crawlMovie(id)
   res.json(cate)
 })
 

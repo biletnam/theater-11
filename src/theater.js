@@ -111,11 +111,14 @@ module.exports = class Theater {
 
   async search (q) {
     const res = await this.get(`category/actSearchMovie/${encodeUrl(q)}`)
-    return res.data.map(movie => {
-      return {
-        id: +movie.id,
-        title: movie.title
-      }
-    })
+    if (typeof res.data === 'object') {
+      return res.data.map(movie => {
+        return {
+          id: +movie.id,
+          title: movie.title
+        }
+      })
+    }
+    return []
   }
 }
