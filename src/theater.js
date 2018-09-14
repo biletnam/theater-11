@@ -37,7 +37,7 @@ module.exports = class Theater {
     return axios.request({ url, method: 'post', baseURL: this.baseURL, headers, data })
   }
 
-  async getCategory (id, page = 1) {
+  async crawlCategory (id, page = 1) {
     const url = `category/type_list/${id}?page=${page}`
     const res = await this.get(url)
     const $ = cheerio.load(res.data)
@@ -50,13 +50,13 @@ module.exports = class Theater {
 
     let next = false
     if (movies.length) {
-      next = () => this.getCategory(id, page + 1)
+      next = () => this.crawlCategory(id, page + 1)
     }
 
     return { movies, next }
   }
 
-  async getMovie (id) {
+  async crawlMovie (id) {
     const res = await this.get(`channelview?cid=${id}`)
     const $ = cheerio.load(res.data)
     const title = entities.decode($('title').html()).replace('HD2LivePlus Movie : ', '')
@@ -69,8 +69,8 @@ module.exports = class Theater {
     return { id, title, m3u8 }
   }
 
-  async updateCategory (id) {
-    let res = await this.getCategory(id)
+  async syncCategory (id) {
+    let res = await this.crawlCategory(id)
     const movies = []
     while (res.next) {
       for (let i = 0; i < res.movies.length; i++) {
@@ -83,8 +83,28 @@ module.exports = class Theater {
     this.db.get('categories').store({ id, movies }).write()
   }
 
-  async updateMovie (id) {
-    const movie = await this.getMovie(id)
+  async syncMovie (id) {
+    const movie = await this.crawlMovie(id)
     this.db.get('movies').store(movie).write()
+    return this.db.get(`movies.${id}`).value()
+  }
+
+  async getCategory (id) {
+    const cate = this.db.get(`categories.${id}`).value()
+    if (cate) {
+      cate.movies = cate.movies.map((id) => {
+        return this.db.get(`movies.${id}`).value()
+      }).filter(m => !!m)
+      return cate
+    }
+    return null
+  }
+
+  async getMovie (id) {
+    let movie = this.db.get(`movies.${id}`).value()
+    if (!movie || movie.m3u8 === undefined) {
+      movie = await this.syncMovie(id)
+    }
+    return movie
   }
 }

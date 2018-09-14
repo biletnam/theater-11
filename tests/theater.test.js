@@ -1,8 +1,11 @@
 require('dotenv').config()
 const { describe, it, before } = require('mocha')
 const assert = require('assert')
+const request = require('supertest')
 
 const Theater = require('../src/theater')
+const app = require('../server')
+
 const theater = new Theater(process.env.BASE_URL, process.env.COOKIE)
 
 describe('# theater', () => {
@@ -11,7 +14,7 @@ describe('# theater', () => {
   })
 
   it('should get category', async () => {
-    const res = await theater.getCategory(15)
+    const res = await theater.crawlCategory(15)
     assert(res.movies.length)
     assert(res.next !== undefined)
 
@@ -21,7 +24,7 @@ describe('# theater', () => {
   })
 
   it('should get movie', async () => {
-    const movie = await theater.getMovie(7225)
+    const movie = await theater.crawlMovie(7225)
     assert(movie.id)
     assert(movie.title)
     assert(movie.m3u8.length)
@@ -32,17 +35,39 @@ describe('# theater', () => {
     assert(m3u8.url)
   })
 
-  it('should update category', async () => {
-    await theater.updateCategory(15)
+  it('should sync category', async () => {
+    await theater.syncCategory(15)
     const cate = theater.db.get('categories.15').value()
     assert.equal(cate.id, 15)
     assert(cate.movies.length)
   })
 
-  it('should update movie', async () => {
-    await theater.updateMovie(7225)
+  it('should sync movie', async () => {
+    await theater.syncMovie(7225)
     const movie = theater.db.get('movies.7225').value()
     assert(movie.id)
     assert(movie.m3u8.length)
+  })
+})
+
+describe('GET /movies/:id', () => {
+  it('should get movie', async () => {
+    let res = await request(app).get('/movies/7225').expect(200)
+    let movie = res.body
+    assert(movie.m3u8.length)
+
+    res = await request(app).get('/movies/7222').expect(200)
+    movie = res.body
+    assert(movie.m3u8.length)
+  })
+})
+
+describe('GET /categories/:id', () => {
+  it('should get category', async () => {
+    let res = await request(app).get('/categories/15').expect(200)
+    let cate = res.body
+    let [movie] = cate.movies
+    assert(movie.id)
+    assert(movie.title)
   })
 })

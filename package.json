@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server",
     "test": "mocha tests"
   },
   "author": "",
@@ -19,6 +20,7 @@
     "query-string": "^6.1.0"
   },
   "devDependencies": {
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "supertest": "^3.3.0"
   }
 }
