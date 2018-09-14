@@ -48,6 +48,14 @@ describe('# theater', () => {
     assert(movie.id)
     assert(movie.m3u8.length)
   })
+
+  it('should get movies', async () => {
+    const movies = await theater.search('เด็ก')
+    assert(movies.length)
+    const [movie] = movies
+    assert(movie.id)
+    assert(movie.title)
+  })
 })
 
 describe('GET /movies/:id', () => {
@@ -67,6 +75,17 @@ describe('GET /categories/:id', () => {
     let res = await request(app).get('/categories/15').expect(200)
     let cate = res.body
     let [movie] = cate.movies
+    assert(movie.id)
+    assert(movie.title)
+  })
+})
+
+describe.only('GET /search/:q', () => {
+  it('should get movie', async () => {
+    let res = await request(app).get('/search/%E0%B8%95%E0%B8%B2%E0%B8%A2').expect(200)
+    const movies = res.body
+    assert(movies.length)
+    const [movie] = movies
     assert(movie.id)
     assert(movie.title)
   })

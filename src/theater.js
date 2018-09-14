@@ -4,6 +4,7 @@ const Entities = require('html-entities').AllHtmlEntities
 const queryString = require('query-string')
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
+const encodeUrl = require('encodeurl')
 
 const mixin = require('./mixin')
 const categories = require('./categories')
@@ -106,5 +107,15 @@ module.exports = class Theater {
       movie = await this.syncMovie(id)
     }
     return movie
+  }
+
+  async search (q) {
+    const res = await this.get(`category/actSearchMovie/${encodeUrl(q)}`)
+    return res.data.map(movie => {
+      return {
+        id: +movie.id,
+        title: movie.title
+      }
+    })
   }
 }
