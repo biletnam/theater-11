@@ -65,7 +65,7 @@ module.exports = class Theater {
       const id = $(el).find('a').attr('onclick')
       const title = $(el).find('img').attr('title')
       const res = await this.post('channelview/getChannelSource', `id=${id}`)
-      return { id, title, url: res.data }
+      return { id, title, url: res.data.substring(1) }
     }).toArray())
     return { id, title, m3u8 }
   }
